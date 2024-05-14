@@ -8,7 +8,7 @@ app.use(express.json());
 app.get('/api/test', (req, res) => {
     try {
         console.log('respones===', res);
-        res.status(200).json({ message: "success", data: res });
+        res.status(200).json({ message: "success", data: "data"};
     } catch (error) {
         console.log(error)
     }
