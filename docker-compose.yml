@@ -1,0 +1,23 @@
+version: "3.0"
+
+services: 
+
+    figma-comment:
+        image: talha13/figma-comment:latest
+        container_name: figma-comment
+        restart: unless-stopped
+        labels:
+            - traefik.http.routers.figma-comment.rule=Host(`figma-comment.agencyframework.io`)
+            - traefik.http.routers.figma-comment.priority=2
+            - traefik.http.routers.figma-comment.tls=true
+            - traefik.http.routers.figma-comment.tls.certresolver=myresolver
+        logging:
+            driver: "json-file"
+            options:
+                max-size: 20m
+                max-file: "5"    
+
+networks:
+    default:
+        external: 
+            name: pypepro

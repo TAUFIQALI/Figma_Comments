@@ -13,7 +13,7 @@ app.post('/webhook', async (req, res) => {
         const payload = req.body;
 
         // Parse the payload
-        const commentText = payload.comment.text; // "comment" is an object, not an array
+        const commentText = payload.comment[0].text; // "comment" is an object, not an array
         const commentId = payload.comment_id;
         const createdAt = payload.created_at;
         const eventType = payload.event_type;
@@ -24,11 +24,17 @@ app.post('/webhook', async (req, res) => {
         const triggeredByHandle = payload.triggered_by.handle;
         const triggeredByEmail = payload.triggered_by.email;
 
+        console.log(commentText);
+        console.log(fileName);
+
         // Split commentText by space and check if the first word is "live"
         const firstWord = fileName.split(' ')[0];
+        console.log(firstWord);
         if (firstWord.toLowerCase() === 'live') {
             // If the first word is "live", post the parsed payload to another webhook API
             const actionWordSearch = commentText.toLowerCase();
+            console.log(actionWordSearch);
+
             const action = actionWordSearch.includes('action') ? 1 : 0;
 
             const newPayload = {
