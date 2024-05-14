@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 app.get('/api/test', (req, res) => {
 
     console.log('respones===', res);
-    res.status(200).send('Test received successfully.');
+    res.status(200).json(res)
 });
 
 
