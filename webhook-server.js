@@ -1,92 +1,67 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { default: axios } = require('axios');
+const axios = require('axios'); // You need to import axios
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const figmaToken = process.env.ACCESS_TOKEN;
 
 app.use(bodyParser.json());
-app.get('/api/test', (req, res) => {
 
-    console.log('respones===', res);
-    res.status(200).send('Test received successfully.');
-});
-
-app.get('/api/comments/all', async (req, res) => {
+// Route to handle incoming webhook payload
+app.post('/webhook', async (req, res) => {
     try {
-        const projectsResponse = await axios.get('https://api.figma.com/v1/teams/801283212722480856/projects', {
-            headers: {
-                'X-FIGMA-TOKEN': figmaToken
-            }
-        });
+        const payload = req.body;
 
-        const projects = projectsResponse.data.projects;
-        const allComments = [];
+        // Parse the payload
+        const commentText = payload.comment.text; // "comment" is an object, not an array
+        const commentId = payload.comment_id;
+        const createdAt = payload.created_at;
+        const eventType = payload.event_type;
+        const fileKey = payload.file_key;
+        const fileName = payload.file_name;
+        const orderId = payload.order_id;
+        const triggeredById = payload.triggered_by.id;
+        const triggeredByHandle = payload.triggered_by.handle;
+        const triggeredByEmail = payload.triggered_by.email;
 
-        // Iterate over each project
-        for (const project of projects) {
-            const projectId = project.id;
+        // Split commentText by space and check if the first word is "live"
+        const firstWord = fileName.split(' ')[0];
+        if (firstWord.toLowerCase() === 'live') {
+            // If the first word is "live", post the parsed payload to another webhook API
+            const actionWordSearch = commentText.toLowerCase();
+            const action = actionWordSearch.includes('action') ? 1 : 0;
 
-            // Fetch files for the project
-            const filesResponse = await axios.get(`https://api.figma.com/v1/projects/${projectId}/files`, {
-                headers: {
-                    'X-FIGMA-TOKEN': figmaToken
-                }
-            });
+            const newPayload = {
+                commentText,
+                commentId,
+                createdAt,
+                eventType,
+                fileKey,
+                fileName,
+                orderId,
+                triggeredById,
+                triggeredByHandle,
+                triggeredByEmail,
+                action
+            };
 
-            const files = filesResponse.data.files;
 
-            // Iterate over each file
-            for (const file of files) {
-                const fileId = file.key;
-
-                // Fetch comments for the file
-                const commentsResponse = await axios.get(`https://api.figma.com/v1/files/${fileId}/comments`, {
-                    headers: {
-                        'X-FIGMA-TOKEN': figmaToken
-                    }
-                });
-
-                const comments = commentsResponse.data.comments;
-                allComments.push({ fileId, comments });
-            }
+            // Post the parsed payload to another webhook API
+            const response = await axios.post('https://hook.us1.make.com/gx1kkqq1cs0z1angvt39ybc2htbxx6x6', newPayload);
+            console.log('response: ', response);
+            console.log('Payload posted successfully to the second webhook API');
+        } else {
+            console.log('Comment does not start with "live". Ignoring...');
         }
 
-        res.status(200).json(allComments);
+        res.status(200).send('Payload received and processed successfully');
     } catch (error) {
-        console.error('Error fetching comments from Figma:', error);
-        res.status(500).send('Error fetching comments from Figma.');
+        console.error('Error processing webhook payload:', error.message);
+        res.status(500).send('Internal server error');
     }
 });
 
-app.get('/api/comments', async (req, res) => {
-    try {
-        const figmaFileId = 'ynsokc4dzkeQPU2ZvaHna4';
-        const url = `https://api.figma.com/v1/files/${figmaFileId}/comments`;
-
-        const response = await axios.get(url, {
-            headers: {
-                'X-FIGMA-TOKEN': figmaToken
-            }
-        });
-        res.status(200).json(response.data);
-    } catch (error) {
-        console.error('Error fetching comments:', error);
-        res.status(500).send('Error fetching comments from Figma.');
-    }
-});
-
-app.post('/api/webhook', (req, res) => {
-    // Handle the incoming webhook payload
-    const payload = req.body;
-    console.log('Received webhook payload:', payload);
-
-    // Your logic to process the payload goes here
-
-    res.status(200).send('Webhook received successfully.');
-});
-
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+    console.log(`Server is listening at http://localhost:${PORT}`); // "port" should be "PORT"
 });
