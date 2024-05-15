@@ -31,6 +31,7 @@ app.post('/webhook', async (req, res) => {
                     if (comment.mention == payload.mentions[j].id) {
                         console.log("Mention:", payload.mentions[j].handle);
                         commentText = commentText.concat(" ", payload.mentions[j].handle);
+                        break;
                     }
                 }
 
