@@ -17,9 +17,27 @@ app.post('/webhook', async (req, res) => {
             console.log('Payload is missing required properties or not in the expected format.');
             return res.status(400).send('Bad Request');
         }
-
+        let commentText = "";
         // Parse the payload
-        const commentText = payload.comment.map(item => item.text || item.mention || '').join('');
+        // const commentText = payload.comment.map(item => item.text || item.mention || '').join('');
+        for (let i = 0; i < payload.comment.length; i++) {
+            const comment = payload.comment[i];
+            if (comment.text) {
+                console.log("Text:", comment.text);
+                commentText = commentText.concat(" ", comment.text)
+            } else if (comment.mention) {
+                console.log("Mention:", comment.mention);
+                for (let j = 0; j < payload.mentions.length; j++) {
+                    if (comment.mention == payload.mentions[j].id) {
+                        console.log("Mention:", payload.mentions[j].handle);
+                        commentText = commentText.concat(" ", payload.mentions[j].handle);
+                    }
+                }
+
+            } else {
+                console.log("Unknown comment format:", comment);
+            }
+        }
 
         const commentId = payload.comment_id;
         const createdAt = payload.created_at;
