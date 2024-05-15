@@ -1,6 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const axios = require('axios'); // You need to import axios
+const axios = require('axios');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,8 +12,15 @@ app.post('/webhook', async (req, res) => {
     try {
         const payload = req.body;
 
+        // Check if the required properties exist in the payload
+        if (!payload || !payload.comment || !Array.isArray(payload.comment)) {
+            console.log('Payload is missing required properties or not in the expected format.');
+            return res.status(400).send('Bad Request');
+        }
+
         // Parse the payload
-        const commentText = payload.comment[0].text; // "comment" is an object, not an array
+        const commentText = payload.comment.map(item => item.text || item.mention || '').join('');
+
         const commentId = payload.comment_id;
         const createdAt = payload.created_at;
         const eventType = payload.event_type;
@@ -51,10 +58,9 @@ app.post('/webhook', async (req, res) => {
                 action
             };
 
-
             // Post the parsed payload to another webhook API
             const response = await axios.post('https://hook.us1.make.com/gx1kkqq1cs0z1angvt39ybc2htbxx6x6', newPayload);
-            console.log('response: ', response);
+            console.log('response: ', response.data);
             console.log('Payload posted successfully to the second webhook API');
         } else {
             console.log('Comment does not start with "live". Ignoring...');
@@ -69,5 +75,5 @@ app.post('/webhook', async (req, res) => {
 
 // Start the server
 app.listen(PORT, () => {
-    console.log(`Server is listening at http://localhost:${PORT}`); // "port" should be "PORT"
+    console.log(`Server is listening at http://localhost:${PORT}`);
 });
