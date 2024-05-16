@@ -49,6 +49,7 @@ app.post('/webhook', async (req, res) => {
         const triggeredById = payload.triggered_by.id;
         const triggeredByHandle = payload.triggered_by.handle;
         const triggeredByEmail = payload.triggered_by.email;
+        const resolvedAt = payload.resolved_at;
 
         console.log(commentText);
         console.log(fileName);
@@ -74,7 +75,8 @@ app.post('/webhook', async (req, res) => {
                 triggeredById,
                 triggeredByHandle,
                 triggeredByEmail,
-                action
+                action,
+                resolvedAt,
             };
 
             // Post the parsed payload to another webhook API
