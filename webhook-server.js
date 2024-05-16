@@ -17,14 +17,15 @@ app.post('/webhook', async (req, res) => {
             console.log('Payload is missing required properties or not in the expected format.');
             return res.status(400).send('Bad Request');
         }
+
         let commentText = "";
+
         // Parse the payload
-        // const commentText = payload.comment.map(item => item.text || item.mention || '').join('');
         for (let i = 0; i < payload.comment.length; i++) {
             const comment = payload.comment[i];
             if (comment.text) {
                 console.log("Text:", comment.text);
-                commentText = commentText.concat(" ", comment.text)
+                commentText = commentText.concat(" ", comment.text);
             } else if (comment.mention) {
                 console.log("Mention:", comment.mention);
                 for (let j = 0; j < payload.mentions.length; j++) {
@@ -34,7 +35,6 @@ app.post('/webhook', async (req, res) => {
                         break;
                     }
                 }
-
             } else {
                 console.log("Unknown comment format:", comment);
             }
@@ -54,41 +54,33 @@ app.post('/webhook', async (req, res) => {
         console.log(commentText);
         console.log(fileName);
 
-        // Split commentText by space and check if the first word is "live"
-        const firstWord = fileName.split(' ')[0];
-        console.log(firstWord);
-        if (firstWord.toLowerCase() === 'live') {
-            // If the first word is "live", post the parsed payload to another webhook API
-            const actionWordSearch = commentText.toLowerCase();
-            console.log(actionWordSearch);
+        const actionWordSearch = commentText.toLowerCase();
+        console.log(actionWordSearch);
 
-            const action = actionWordSearch.includes('action') ? 1 : 0;
+        const action = actionWordSearch.includes('action') ? 1 : 0;
 
-            const newPayload = {
-                commentText,
-                commentId,
-                createdAt,
-                eventType,
-                fileKey,
-                fileName,
-                orderId,
-                triggeredById,
-                triggeredByHandle,
-                triggeredByEmail,
-                action,
-                resolvedAt,
-            };
+        const newPayload = {
+            commentText,
+            commentId,
+            createdAt,
+            eventType,
+            fileKey,
+            fileName,
+            orderId,
+            triggeredById,
+            triggeredByHandle,
+            triggeredByEmail,
+            action,
+            resolvedAt,
+        };
 
-            // Post the parsed payload to another webhook API
-            const response = await axios.post('https://hook.us1.make.com/gx1kkqq1cs0z1angvt39ybc2htbxx6x6', newPayload);
-            console.log('response: ', response.data);
-            console.log('Payload posted successfully to the second webhook API');
-        } else {
-            console.log('Comment does not start with "live". Ignoring...');
-        }
+        // Post the parsed payload to another webhook API
+        const response = await axios.post('https://hook.us1.make.com/gx1kkqq1cs0z1angvt39ybc2htbxx6x6', newPayload);
+        console.log('response: ', response.data);
+        console.log('Payload posted successfully to the second webhook API');
 
         res.status(200).send('Payload received and processed successfully');
-    } catch (error) {
+    } catch (errsor) {
         console.error('Error processing webhook payload:', error.message);
         res.status(500).send('Internal server error');
     }
